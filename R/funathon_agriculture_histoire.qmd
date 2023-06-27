@@ -343,9 +343,9 @@ Il ne vous reste plus qu'à séparer la colonne centre pour avoir la latitude et
 #| warning: false
 #| echo: true
 
-surfaces_ra1852_lat_long <- surfaces_ra1852_coordonnees_centre_corrigees %>%
-  mutate(latitude = ifelse(is.na(centre), NA, unlist(centre[2])),
-         longitude = ifelse(is.na(centre), NA, unlist(centre[1])))
+surfaces_ra1852_final <- surfaces_ra1852_coordonnees_centre_corrigees
+surfaces_ra1852_final$longitude <- unlist(lapply(surfaces_ra1852_final$centre, function(x) ifelse(!is.null(x), x[1], NA)))
+surfaces_ra1852_final$latitude <- unlist(lapply(surfaces_ra1852_final$centre, function(x) ifelse(!is.null(x),x[2], NA)))
 
 ```
 
@@ -363,6 +363,8 @@ Il ne vous reste plus qu'à créer le code en vous inspirant de l'aide de leafle
 #| warning: false
 #| echo: true
 
+leaflet(data = surfaces_ra1852_final) %>% addTiles() %>%
+  addMarkers(~longitude, ~latitude, popup = ~as.character(canton), label = ~as.character(canton))
 
 
 ```
@@ -374,9 +376,7 @@ Il ne vous reste plus qu'à créer le code en vous inspirant de l'aide de leafle
 Le problème est le suivant :
 
 -   nous avons une surface géographique que l'on souhaite découper en zone (des cantons).
-    - nous connaissons le chef lieu de chaque zone.
-    Ce n'est pas forcément le centre mais en tant que chef-lieu, nous considérons que sa zone d'influence l'entoure.
-
+    -   nous connaissons le chef lieu de chaque zone. Ce n'est pas forcément le centre mais en tant que chef-lieu, nous considérons que sa zone d'influence l'entoure.
 -   nous n'avons pas d'autres éléments de connaissance sur les zones d'influence.
 
 Notre hypothèse est la suivante : nous coupons la surface du territoire en zone d'influence selon le principe du diagramme de Voronoi :
